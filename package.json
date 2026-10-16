@@ -1,0 +1,10 @@
+{
+  "name": "ileri-internet-26",
+  "version": "1.0.0",
+  "private": true,
+  "description": "İleri İnternet Programlama 2026-2027 güz dönemi",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

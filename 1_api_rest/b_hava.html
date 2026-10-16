@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Balıkesir Hava Durumu</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: #fff;
+    background: linear-gradient(160deg, #4facfe, #00c6fb);
+    transition: background 1s ease;
+    overflow: hidden;
+  }
+
+  .kart {
+    text-align: center;
+    padding: clamp(24px, 5vw, 64px) clamp(32px, 8vw, 120px);
+    border-radius: 48px;
+    background: rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+    animation: belir 0.9s ease both;
+  }
+
+  .sehir {
+    font-size: clamp(1.4rem, 3.5vw, 2.6rem);
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    font-weight: 300;
+    opacity: 0.9;
+  }
+
+  .simge {
+    font-size: clamp(6rem, 18vw, 14rem);
+    line-height: 1.1;
+    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.3));
+    animation: salin 5s ease-in-out infinite;
+  }
+
+  .sicaklik {
+    font-size: clamp(7rem, 24vw, 18rem);
+    font-weight: 200;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+  }
+
+  .durum {
+    font-size: clamp(1.6rem, 4vw, 3rem);
+    font-weight: 300;
+    margin-top: 8px;
+    opacity: 0.95;
+  }
+
+  .alt {
+    display: flex;
+    justify-content: center;
+    gap: clamp(24px, 6vw, 90px);
+    margin-top: clamp(24px, 4vw, 48px);
+    flex-wrap: wrap;
+  }
+
+  .bilgi b {
+    display: block;
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: 300;
+  }
+
+  .bilgi span {
+    font-size: clamp(0.9rem, 1.6vw, 1.3rem);
+    opacity: 0.75;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .saat {
+    margin-top: 32px;
+    font-size: 0.95rem;
+    opacity: 0.6;
+  }
+
+  @keyframes belir { from { opacity: 0; transform: translateY(30px) scale(0.96); } to { opacity: 1; transform: none; } }
+  @keyframes salin { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+</style>
+</head>
+<body>
+  <div class="kart">
+    <div class="sehir">Balıkesir</div>
+    <div class="simge" id="simge">⏳</div>
+    <div class="sicaklik" id="sicaklik">--°</div>
+    <div class="durum" id="durum">Yükleniyor…</div>
+    <div class="alt">
+      <div class="bilgi"><b id="hissedilen">--°</b><span>Hissedilen</span></div>
+      <div class="bilgi"><b id="ruzgar">--</b><span>Rüzgar km/sa</span></div>
+      <div class="bilgi"><b id="nem">--%</b><span>Nem</span></div>
+    </div>
+    <div class="saat" id="saat"></div>
+  </div>
+
+<script>
+  const adres = "https://api.open-meteo.com/v1/forecast?latitude=39.65&longitude=27.89"
+    + "&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day"
+    + "&timezone=Europe/Istanbul";
+
+  const kodlar = {
+    0: ["Açık", "☀️", "🌙"],
+    1: ["Çoğunlukla açık", "🌤️", "🌙"],
+    2: ["Parçalı bulutlu", "⛅", "☁️"],
+    3: ["Kapalı", "☁️", "☁️"],
+    45: ["Sisli", "🌫️", "🌫️"], 48: ["Kırağılı sis", "🌫️", "🌫️"],
+    51: ["Hafif çiseleme", "🌦️", "🌧️"], 53: ["Çiseleme", "🌦️", "🌧️"], 55: ["Yoğun çiseleme", "🌧️", "🌧️"],
+    56: ["Dondurucu çiseleme", "🌧️", "🌧️"], 57: ["Dondurucu çiseleme", "🌧️", "🌧️"],
+    61: ["Hafif yağmur", "🌦️", "🌧️"], 63: ["Yağmur", "🌧️", "🌧️"], 65: ["Şiddetli yağmur", "🌧️", "🌧️"],
+    66: ["Dondurucu yağmur", "🌧️", "🌧️"], 67: ["Dondurucu yağmur", "🌧️", "🌧️"],
+    71: ["Hafif kar", "🌨️", "🌨️"], 73: ["Kar", "❄️", "❄️"], 75: ["Yoğun kar", "❄️", "❄️"], 77: ["Kar taneleri", "❄️", "❄️"],
+    80: ["Hafif sağanak", "🌦️", "🌧️"], 81: ["Sağanak", "🌧️", "🌧️"], 82: ["Şiddetli sağanak", "⛈️", "⛈️"],
+    85: ["Kar sağanağı", "🌨️", "🌨️"], 86: ["Yoğun kar sağanağı", "❄️", "❄️"],
+    95: ["Gök gürültülü fırtına", "⛈️", "⛈️"], 96: ["Dolulu fırtına", "⛈️", "⛈️"], 99: ["Şiddetli dolulu fırtına", "⛈️", "⛈️"]
+  };
+
+  function arkaPlan(sicaklik, gunduz) {
+    if (!gunduz) return "linear-gradient(160deg, #0f2027, #203a43, #2c5364)";
+    if (sicaklik < 0)  return "linear-gradient(160deg, #6dd5fa, #2980b9)";
+    if (sicaklik < 12) return "linear-gradient(160deg, #4facfe, #3a7bd5)";
+    if (sicaklik < 22) return "linear-gradient(160deg, #43cea2, #185a9d)";
+    if (sicaklik < 30) return "linear-gradient(160deg, #f7971e, #ffd200)";
+    return "linear-gradient(160deg, #f85032, #e73827)";
+  }
+
+  async function yukle() {
+    try {
+      const yanit = await fetch(adres);
+      const c = (await yanit.json()).current;
+      const [ad, gunSimge, geceSimge] = kodlar[c.weather_code] || ["Bilinmiyor", "🌡️", "🌡️"];
+
+      document.getElementById("simge").textContent = c.is_day ? gunSimge : geceSimge;
+      document.getElementById("sicaklik").textContent = Math.round(c.temperature_2m) + "°";
+      document.getElementById("durum").textContent = ad;
+      document.getElementById("hissedilen").textContent = Math.round(c.apparent_temperature) + "°";
+      document.getElementById("ruzgar").textContent = Math.round(c.wind_speed_10m);
+      document.getElementById("nem").textContent = "%" + c.relative_humidity_2m;
+      document.getElementById("saat").textContent = "Son güncelleme: " + new Date().toLocaleTimeString("tr-TR");
+      document.body.style.background = arkaPlan(c.temperature_2m, c.is_day);
+    } catch (hata) {
+      document.getElementById("durum").textContent = "Veri alınamadı";
+    }
+  }
+
+  yukle();
+  setInterval(yukle, 10 * 60 * 1000);
+</script>
+</body>
+</html>
