@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>haber10da — gündem 10 saniyede</title>
+    <meta name="description" content="Her haberin 10 saniyede okunacak özeti. Balıkesir Üniversitesi İleri İnternet Programlama dersi projesi." />
+    <meta name="theme-color" content="#2433c9" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/bricolage/bricolage-grotesque-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/css/site.css" />
+    <script type="module" src="/js/ana.js"></script>
+  </head>
+  <body>
+    <a class="atla" href="#icerik">İçeriğe geç</a>
+
+    <header class="ust">
+      <div class="kap ust__ic">
+        <a class="logo" href="/" aria-label="haber10da anasayfa">
+          haber<span class="logo__halka" aria-hidden="true">
+            <svg viewBox="0 0 36 36"><circle class="iz" cx="18" cy="18" r="15.5" /><circle class="dolgu" cx="18" cy="18" r="15.5" stroke-dasharray="97.4" stroke-dashoffset="24" transform="rotate(-90 18 18)" /></svg>
+            <span>10</span></span>da
+        </a>
+        <nav class="kategoriler-nav" id="kategoriler-nav" aria-label="Kategoriler"></nav>
+        <div class="ust__araclar">
+          <a class="dugme-ikon" href="/arama" aria-label="Ara" title="Ara">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+          </a>
+          <a class="dugme dugme--ikincil metinli" href="/asistan">Haberlere sor</a>
+          <button class="dugme-ikon" id="tema-dugmesi" type="button" aria-label="Koyu temaya geç" title="Tema">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z" /></svg>
+          </button>
+          <span id="oturum-alani"></span>
+        </div>
+      </div>
+    </header>
+
+    <div class="son-dakika" id="son-dakika" hidden role="status" aria-live="polite">
+      <div class="kap son-dakika__ic">
+        <span class="son-dakika__etiket"><span class="canli-nokta"></span>Son dakika</span>
+        <a id="son-dakika-baglanti" href="/"></a>
+        <time id="son-dakika-zaman"></time>
+      </div>
+    </div>
+
+    <main id="icerik" class="kap" tabindex="-1">
+      <div class="iskelet iskelet--panel"></div>
+    </main>
+
+    <footer class="alt">
+      <div class="kap alt__ic">
+        <div>
+          <h2>haber10da</h2>
+          <p>Balıkesir Üniversitesi Bilgisayar Mühendisliği, İleri İnternet Programlama dersi kapsamında öğrencilerle geliştirilen eğitim projesidir. "Örnek içerik" etiketli haberler kurgusaldır.</p>
+          <p id="site-okur"></p>
+        </div>
+        <div>
+          <h2>Okur</h2>
+          <ul>
+            <li><a href="/arama">Arama</a></li>
+            <li><a href="/asistan">Haberlere sor</a></li>
+            <li><a href="/giris">Giriş yap</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Geliştirici</h2>
+          <ul>
+            <li><a href="/ders">Bu site nasıl çalışıyor?</a></li>
+            <li><a href="/api/belgeler" data-dis>API belgeleri (OpenAPI)</a></li>
+            <li><a href="/graphql" data-dis>GraphQL</a></li>
+            <li><a href="https://roadmap.sh/backend" data-dis rel="noopener">Backend yol haritası</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+node_modules
+.veri
+.env
+.env.*
+!.env.example
+.git
+.github
+tests
+docs
+*.log
+coverage

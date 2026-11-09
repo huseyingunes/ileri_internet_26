@@ -1,0 +1,35 @@
+# Sürekli dağıtım: CI başarılı olunca sunucuya SSH ile bağlan, yeni imajı çek, sıfır kesintiyle yeniden başlat.
+# Gerekli depo gizleri (Settings → Secrets → Actions):
+#   SUNUCU_ADRES, SUNUCU_KULLANICI, SUNUCU_SSH_ANAHTARI
+name: Dağıtım
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  dagit:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: uretim
+    steps:
+      - name: Sunucuda güncelle
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SUNUCU_ADRES }}
+          username: ${{ secrets.SUNUCU_KULLANICI }}
+          key: ${{ secrets.SUNUCU_SSH_ANAHTARI }}
+          script: |
+            set -e
+            cd ~/haber10da
+            git pull --ff-only
+            export IMAJ=ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_sha }}
+            docker compose pull uygulama worker
+            # Önce worker, sonra uygulama: göçler uygulama açılışında çalışır
+            docker compose up -d --no-deps worker
+            docker compose up -d --no-deps --wait uygulama
+            docker image prune -f
+      - name: Duman testi
+        run: curl --fail --retry 5 --retry-delay 5 https://haber10da.net/api/hazir

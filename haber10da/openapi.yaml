@@ -1,0 +1,262 @@
+openapi: 3.1.0
+info:
+  title: haber10da API
+  version: 1.0.0
+  description: |
+    İleri İnternet Programlama dersi haber sitesi API'si.
+    Hatalar RFC 9457 "problem+json" biçimindedir. Korunan uç noktalar `Authorization: Bearer <erişim belirteci>` ister.
+servers:
+  - url: /
+tags:
+  - name: Haberler
+  - name: Kimlik
+  - name: Editör
+  - name: Yapay zekâ
+  - name: Sistem
+paths:
+  /api/haberler:
+    get:
+      tags: [Haberler]
+      summary: Yayındaki haberleri sayfalı listeler
+      parameters:
+        - { name: kategori, in: query, schema: { type: string, example: kampus } }
+        - { name: sayfa, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 12 } }
+      responses:
+        '200':
+          description: Haber listesi
+          headers:
+            ETag: { schema: { type: string } }
+            Cache-Control: { schema: { type: string } }
+            X-Onbellek: { description: 'ISABET veya KACIRMA', schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HaberSayfasi' }
+        '304': { description: İçerik değişmedi (If-None-Match eşleşti) }
+  /api/haberler/manset:
+    get:
+      tags: [Haberler]
+      summary: 10 saniye akışı için son 5 haber ve son dakika haberleri
+      responses:
+        '200':
+          description: Manşet
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  manset: { type: array, items: { $ref: '#/components/schemas/Haber' } }
+                  sonDakika: { type: array, items: { $ref: '#/components/schemas/Haber' } }
+  /api/haberler/populer:
+    get:
+      tags: [Haberler]
+      summary: Bugün en çok okunan haberler (Redis sıralı küme)
+      responses:
+        '200': { description: Liste, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Haber' } } } } }
+  /api/haberler/{slug}:
+    get:
+      tags: [Haberler]
+      summary: Tek haber (içerikle)
+      parameters: [{ name: slug, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: Haber, content: { application/json: { schema: { $ref: '#/components/schemas/Haber' } } } }
+        '404': { $ref: '#/components/responses/Problem' }
+  /api/haberler/{slug}/benzer:
+    get:
+      tags: [Haberler, Yapay zekâ]
+      summary: Vektör benzerliğine göre ilgili haberler
+      parameters: [{ name: slug, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: Benzer haberler, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Haber' } } } } }
+  /api/kategoriler:
+    get:
+      tags: [Haberler]
+      summary: Kategoriler
+      responses:
+        '200': { description: Liste, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Kategori' } } } } }
+  /api/arama:
+    get:
+      tags: [Haberler]
+      summary: Tam metin arama (PostgreSQL veya Elasticsearch)
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 2 } }
+        - { name: sayfa, in: query, schema: { type: integer, default: 1 } }
+      responses:
+        '200': { description: Sonuçlar. `vurgu` alanında eşleşmeler ⟦ ⟧ arasındadır. }
+        '429': { $ref: '#/components/responses/Problem' }
+  /api/canli/akis:
+    get:
+      tags: [Haberler]
+      summary: Son dakika canlı akışı (Server-Sent Events)
+      description: "Olaylar: `son-dakika`, `haber-yayinlandi`, `haber-guncellendi`. `Last-Event-ID` ile kaçırılan olaylar tekrar gönderilir."
+      responses:
+        '200': { description: text/event-stream, content: { text/event-stream: { schema: { type: string } } } }
+  /api/asistan/sor:
+    post:
+      tags: [Yapay zekâ]
+      summary: Haberlere soru sor (RAG + araç çağırma, akışlı yanıt)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [soru], properties: { soru: { type: string, minLength: 3, maxLength: 300 } } } } }
+      responses:
+        '200': { description: "text/event-stream — olaylar: arac, kaynak, parca, bitti, hata" }
+        '429': { $ref: '#/components/responses/Problem' }
+  /api/auth/kayit:
+    post:
+      tags: [Kimlik]
+      summary: Yeni okur hesabı
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [ad, eposta, parola], properties: { ad: { type: string }, eposta: { type: string, format: email }, parola: { type: string, minLength: 8 } } } } }
+      responses:
+        '201': { description: Oturum açıldı, content: { application/json: { schema: { $ref: '#/components/schemas/Oturum' } } } }
+        '409': { $ref: '#/components/responses/Problem' }
+  /api/auth/giris:
+    post:
+      tags: [Kimlik]
+      summary: E-posta ve parola ile giriş
+      description: Yanıtta erişim belirteci döner; yenileme belirteci httpOnly çerezde (h10_yenile) gelir.
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [eposta, parola], properties: { eposta: { type: string }, parola: { type: string } } } } }
+      responses:
+        '200': { description: Oturum açıldı, content: { application/json: { schema: { $ref: '#/components/schemas/Oturum' } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/Problem' }
+  /api/auth/yenile:
+    post:
+      tags: [Kimlik]
+      summary: Yenileme çereziyle yeni erişim belirteci (belirteç döndürme)
+      responses:
+        '200': { description: Yeni belirteçler, content: { application/json: { schema: { $ref: '#/components/schemas/Oturum' } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+  /api/auth/cikis:
+    post: { tags: [Kimlik], summary: Oturumu kapat, responses: { '204': { description: Çıkış yapıldı } } }
+  /api/auth/ben:
+    get:
+      tags: [Kimlik]
+      security: [{ bearer: [] }]
+      summary: Giriş yapmış kullanıcı
+      responses: { '200': { description: Kullanıcı, content: { application/json: { schema: { $ref: '#/components/schemas/Kullanici' } } } } }
+  /api/auth/github:
+    get: { tags: [Kimlik], summary: GitHub OAuth akışını başlatır (302), responses: { '302': { description: GitHub'a yönlendirme } } }
+  /api/editor/haberler:
+    get:
+      tags: [Editör]
+      security: [{ bearer: [] }]
+      summary: Editörün haberleri (taslaklar dahil)
+      responses: { '200': { description: Liste } , '403': { $ref: '#/components/responses/Problem' } }
+    post:
+      tags: [Editör]
+      security: [{ bearer: [] }]
+      summary: Taslak haber oluştur
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/HaberGirdisi' } } } }
+      responses:
+        '201': { description: Oluşturuldu }
+        '400': { $ref: '#/components/responses/Problem' }
+  /api/editor/haberler/{id}:
+    patch:
+      tags: [Editör]
+      security: [{ bearer: [] }]
+      summary: Haberi güncelle (kısmi)
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/HaberGirdisi' } } } }
+      responses: { '200': { description: Güncellendi } }
+    delete:
+      tags: [Editör]
+      security: [{ bearer: [] }]
+      summary: Haberi sil
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { '204': { description: Silindi } }
+  /api/editor/haberler/{id}/yayinla:
+    post:
+      tags: [Editör]
+      security: [{ bearer: [] }]
+      summary: Yayımla — önbellek geçersiz kılınır, canlı akışa olay gider, özet ve gömme kuyrukta üretilir
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { '200': { description: Yayımlandı } }
+  /api/editor/ozet-onizle:
+    post:
+      tags: [Editör, Yapay zekâ]
+      security: [{ bearer: [] }]
+      summary: Kaydetmeden 10 saniyelik özet üret (yapılandırılmış çıktı)
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { baslik: { type: string }, spot: { type: string }, icerik: { type: string } } } } } }
+      responses: { '200': { description: "{ ozet, etiketler, kaynak }" } }
+  /api/saglik:
+    get: { tags: [Sistem], summary: Canlılık denetimi, responses: { '200': { description: Ayakta } } }
+  /api/hazir:
+    get: { tags: [Sistem], summary: Hazır olma denetimi (veritabanı), responses: { '200': { description: Hazır }, '503': { description: Hazır değil } } }
+  /api/sistem/durum:
+    get: { tags: [Sistem], summary: Bileşenlerin canlı durumu, responses: { '200': { description: Durum } } }
+  /api/metrics:
+    get: { tags: [Sistem], summary: Prometheus metrikleri (HTTP Basic kimlik doğrulama), security: [{ basic: [] }], responses: { '200': { description: text/plain } } }
+  /api/ders/n-arti-bir:
+    get:
+      tags: [Sistem]
+      summary: N+1 sorgu sorununun canlı gösterimi
+      parameters: [{ name: mod, in: query, schema: { type: string, enum: [kotu, iyi] } }]
+      responses: { '200': { description: "{ mod, sorguSayisi, sureMs, ornekSorgular }" } }
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer, bearerFormat: JWT }
+    basic: { type: http, scheme: basic }
+  responses:
+    Problem:
+      description: Hata (RFC 9457)
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            properties:
+              type: { type: string }
+              title: { type: string }
+              status: { type: integer }
+              detail: { type: string }
+              instance: { type: string }
+              istekKimligi: { type: string }
+  schemas:
+    Kategori:
+      type: object
+      properties: { id: { type: integer }, ad: { type: string }, slug: { type: string }, renk: { type: string } }
+    Kullanici:
+      type: object
+      properties: { id: { type: integer }, ad: { type: string }, eposta: { type: string }, rol: { type: string, enum: [okur, editor, admin] }, avatar: { type: string, nullable: true } }
+    Oturum:
+      type: object
+      properties: { kullanici: { $ref: '#/components/schemas/Kullanici' }, erisim: { type: string, description: JWT } }
+    Haber:
+      type: object
+      properties:
+        id: { type: integer }
+        slug: { type: string }
+        baslik: { type: string }
+        spot: { type: string }
+        ozet: { type: string, nullable: true, description: 10 saniyelik özet }
+        ozetKaynak: { type: string, enum: [editor, yz, cikarimsal], nullable: true }
+        icerik: { type: string, description: Yalnızca tek haber yanıtında }
+        etiketler: { type: array, items: { type: string } }
+        okumaSuresi: { type: integer, description: saniye }
+        sonDakika: { type: boolean }
+        ornek: { type: boolean }
+        goruntulenme: { type: integer }
+        yayinTarihi: { type: string, format: date-time }
+        kategori: { $ref: '#/components/schemas/Kategori' }
+        yazar: { type: object, properties: { id: { type: integer }, ad: { type: string } } }
+    HaberSayfasi:
+      type: object
+      properties:
+        haberler: { type: array, items: { $ref: '#/components/schemas/Haber' } }
+        toplam: { type: integer }
+        sayfa: { type: integer }
+        sayfaSayisi: { type: integer }
+    HaberGirdisi:
+      type: object
+      required: [baslik, spot, icerik, kategoriId]
+      properties:
+        baslik: { type: string, minLength: 10, maxLength: 160 }
+        spot: { type: string, minLength: 20, maxLength: 320 }
+        icerik: { type: string, minLength: 50 }
+        kategoriId: { type: integer }
+        sonDakika: { type: boolean }
+        ozet: { type: string, nullable: true }
+        etiketler: { type: array, items: { type: string } }

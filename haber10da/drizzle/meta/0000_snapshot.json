@@ -1,0 +1,576 @@
+{
+  "id": "83cb4a00-4ce0-42c5-bb8a-3b02dda51640",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.haberler": {
+      "name": "haberler",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "baslik": {
+          "name": "baslik",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "spot": {
+          "name": "spot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "icerik": {
+          "name": "icerik",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ozet": {
+          "name": "ozet",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ozet_kaynak": {
+          "name": "ozet_kaynak",
+          "type": "ozet_kaynak",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "etiketler": {
+          "name": "etiketler",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::text[]"
+        },
+        "okuma_suresi": {
+          "name": "okuma_suresi",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 60
+        },
+        "kategori_id": {
+          "name": "kategori_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "yazar_id": {
+          "name": "yazar_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "durum": {
+          "name": "durum",
+          "type": "haber_durum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'taslak'"
+        },
+        "son_dakika": {
+          "name": "son_dakika",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "ornek": {
+          "name": "ornek",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "kaynak_ad": {
+          "name": "kaynak_ad",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kaynak_url": {
+          "name": "kaynak_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "goruntulenme": {
+          "name": "goruntulenme",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "gomme": {
+          "name": "gomme",
+          "type": "vector(768)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gomme_model": {
+          "name": "gomme_model",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "yayin_tarihi": {
+          "name": "yayin_tarihi",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "guncelleme": {
+          "name": "guncelleme",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "olusturma": {
+          "name": "olusturma",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "haberler_slug_idx": {
+          "name": "haberler_slug_idx",
+          "columns": [
+            {
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "haberler_kaynak_url_idx": {
+          "name": "haberler_kaynak_url_idx",
+          "columns": [
+            {
+              "expression": "kaynak_url",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "haberler_durum_tarih_idx": {
+          "name": "haberler_durum_tarih_idx",
+          "columns": [
+            {
+              "expression": "durum",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "yayin_tarihi",
+              "isExpression": false,
+              "asc": false,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "haberler_kategori_idx": {
+          "name": "haberler_kategori_idx",
+          "columns": [
+            {
+              "expression": "kategori_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "haberler_yazar_idx": {
+          "name": "haberler_yazar_idx",
+          "columns": [
+            {
+              "expression": "yazar_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "haberler_fts_idx": {
+          "name": "haberler_fts_idx",
+          "columns": [
+            {
+              "expression": "to_tsvector('turkish', \"baslik\" || ' ' || \"spot\" || ' ' || \"icerik\")",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
+          "with": {}
+        },
+        "haberler_gomme_idx": {
+          "name": "haberler_gomme_idx",
+          "columns": [
+            {
+              "expression": "gomme",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "vector_cosine_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "hnsw",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "haberler_kategori_id_kategoriler_id_fk": {
+          "name": "haberler_kategori_id_kategoriler_id_fk",
+          "tableFrom": "haberler",
+          "tableTo": "kategoriler",
+          "columnsFrom": [
+            "kategori_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "haberler_yazar_id_kullanicilar_id_fk": {
+          "name": "haberler_yazar_id_kullanicilar_id_fk",
+          "tableFrom": "haberler",
+          "tableTo": "kullanicilar",
+          "columnsFrom": [
+            "yazar_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.kategoriler": {
+      "name": "kategoriler",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "ad": {
+          "name": "ad",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "renk": {
+          "name": "renk",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'#2B3FE0'"
+        },
+        "sira": {
+          "name": "sira",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "kategoriler_slug_unique": {
+          "name": "kategoriler_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.kullanicilar": {
+      "name": "kullanicilar",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "eposta": {
+          "name": "eposta",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ad": {
+          "name": "ad",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "parola_ozeti": {
+          "name": "parola_ozeti",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rol": {
+          "name": "rol",
+          "type": "rol",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'okur'"
+        },
+        "github_id": {
+          "name": "github_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "avatar": {
+          "name": "avatar",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "olusturma": {
+          "name": "olusturma",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "kullanicilar_eposta_unique": {
+          "name": "kullanicilar_eposta_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "eposta"
+          ]
+        },
+        "kullanicilar_github_id_unique": {
+          "name": "kullanicilar_github_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "github_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.yenileme_belirtecleri": {
+      "name": "yenileme_belirtecleri",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "kullanici_id": {
+          "name": "kullanici_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aile": {
+          "name": "aile",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "son_kullanma": {
+          "name": "son_kullanma",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kullanildi": {
+          "name": "kullanildi",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "iptal": {
+          "name": "iptal",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "olusturma": {
+          "name": "olusturma",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "yenileme_kullanici_idx": {
+          "name": "yenileme_kullanici_idx",
+          "columns": [
+            {
+              "expression": "kullanici_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "yenileme_aile_idx": {
+          "name": "yenileme_aile_idx",
+          "columns": [
+            {
+              "expression": "aile",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "yenileme_belirtecleri_kullanici_id_kullanicilar_id_fk": {
+          "name": "yenileme_belirtecleri_kullanici_id_kullanicilar_id_fk",
+          "tableFrom": "yenileme_belirtecleri",
+          "tableTo": "kullanicilar",
+          "columnsFrom": [
+            "kullanici_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.haber_durum": {
+      "name": "haber_durum",
+      "schema": "public",
+      "values": [
+        "taslak",
+        "yayinda"
+      ]
+    },
+    "public.ozet_kaynak": {
+      "name": "ozet_kaynak",
+      "schema": "public",
+      "values": [
+        "editor",
+        "yz",
+        "cikarimsal"
+      ]
+    },
+    "public.rol": {
+      "name": "rol",
+      "schema": "public",
+      "values": [
+        "okur",
+        "editor",
+        "admin"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

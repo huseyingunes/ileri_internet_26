@@ -1,0 +1,158 @@
+# haber10da — tüm sistem tek komutla:
+#   docker compose up -d                          → çekirdek: nginx + uygulama + worker + postgres + redis + rabbitmq
+#   docker compose --profile arama up -d          → + Elasticsearch
+#   docker compose --profile izleme up -d         → + Prometheus + Grafana
+#   docker compose up -d --scale uygulama=3       → yatay ölçekleme (Nginx yükü dağıtır)
+#
+# Gizli değerler .env dosyasından okunur (bkz. .env.example).
+
+x-uygulama-ortami: &ortam
+  NODE_ENV: production
+  SITE_URL: ${SITE_URL:-http://localhost}
+  DATABASE_URL: postgres://haber:${POSTGRES_PAROLA:-haber}@postgres:5432/haber10da
+  REDIS_URL: redis://redis:6379
+  AMQP_URL: amqp://haber:${RABBIT_PAROLA:-haber}@rabbitmq:5672
+  ELASTIC_URL: ${ELASTIC_URL:-}
+  JWT_SECRET: ${JWT_SECRET:?JWT_SECRET tanımlanmalı}
+  ADMIN_EPOSTA: ${ADMIN_EPOSTA:-admin@haber10da.net}
+  ADMIN_PAROLA: ${ADMIN_PAROLA:-}
+  GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+  GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+  LLM_BASE_URL: ${LLM_BASE_URL:-}
+  LLM_API_KEY: ${LLM_API_KEY:-}
+  LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+  EMBED_BASE_URL: ${EMBED_BASE_URL:-}
+  EMBED_MODEL: ${EMBED_MODEL:-text-embedding-3-small}
+  METRIK_PAROLA: ${METRIK_PAROLA:-}
+  RSS_KAYNAKLARI: ${RSS_KAYNAKLARI:-}
+  LOG_LEVEL: info
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/${NGINX_SITE:-haber10da.conf}:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/sertifikalar:/etc/nginx/sertifikalar:ro
+      - certbot-www:/var/www/certbot:ro
+    depends_on:
+      uygulama:
+        condition: service_healthy
+    restart: unless-stopped
+
+  uygulama:
+    image: ${IMAJ:-ghcr.io/kullanici/haber10da:latest}
+    build: .
+    environment: *ortam
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    # Port dışarı açılmaz: yalnızca Nginx üzerinden erişilir
+
+  worker:
+    image: ${IMAJ:-ghcr.io/kullanici/haber10da:latest}
+    build: .
+    command: ['node', 'src/worker.js']
+    environment: *ortam
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: haber10da
+      POSTGRES_USER: haber
+      POSTGRES_PASSWORD: ${POSTGRES_PAROLA:-haber}
+    volumes:
+      - postgres-veri:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U haber -d haber10da']
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    # Bellek sınırı dolunca en az kullanılan anahtarı sil (önbellek davranışı); AOF ile kalıcılık
+    command: ['redis-server', '--maxmemory', '256mb', '--maxmemory-policy', 'allkeys-lru', '--appendonly', 'yes']
+    volumes:
+      - redis-veri:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: haber
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PAROLA:-haber}
+    ports:
+      - '127.0.0.1:15672:15672' # yönetim arayüzü yalnızca sunucunun kendisinden
+    volumes:
+      - rabbitmq-veri:/var/lib/rabbitmq
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 10s
+      retries: 10
+    restart: unless-stopped
+
+  elasticsearch:
+    profiles: ['arama']
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: 'false'
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    volumes:
+      - elastic-veri:/usr/share/elasticsearch/data
+    restart: unless-stopped
+
+  prometheus:
+    profiles: ['izleme']
+    image: prom/prometheus:v2.54.1
+    volumes:
+      - ./izleme/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - '127.0.0.1:9090:9090'
+    restart: unless-stopped
+
+  grafana:
+    profiles: ['izleme']
+    image: grafana/grafana:11.2.2
+    ports:
+      - '127.0.0.1:3001:3000'
+    volumes:
+      - grafana-veri:/var/lib/grafana
+    restart: unless-stopped
+
+  certbot:
+    profiles: ['tls']
+    image: certbot/certbot:v2.11.0
+    volumes:
+      - ./nginx/sertifikalar:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    command: certonly --webroot -w /var/www/certbot -d haber10da.net -d www.haber10da.net --agree-tos -m ${ADMIN_EPOSTA:-admin@haber10da.net} --non-interactive
+
+volumes:
+  postgres-veri:
+  redis-veri:
+  rabbitmq-veri:
+  elastic-veri:
+  grafana-veri:
+  certbot-www:
