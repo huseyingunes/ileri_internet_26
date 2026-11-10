@@ -2,7 +2,7 @@ import js from '@eslint/js';
 import globals from 'globals';
 
 export default [
-  { ignores: ['node_modules/', '.veri/', 'drizzle/', '1_api_rest/', '2_authentication/', '2_sinav/', '3_sinav/'] },
+  {   { ignores: ['node_modules/', '.veri/', 'drizzle/', '[0-9]*/**'] },
   js.configs.recommended,
   {
     files: ['src/**/*.js', 'tests/**/*.js', '*.js'],
