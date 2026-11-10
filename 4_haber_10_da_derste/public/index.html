@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>haber10da</title>
+  <link rel="stylesheet" href="/stil.css">
+</head>
+<body>
+  <header class="ust">
+    <strong>haber10da</strong>
+    <span id="kullanici"></span>
+  </header>
+
+  <main class="icerik">
+    <form id="haber-formu" hidden>
+      <h2>Yeni haber</h2>
+      <input id="baslik" placeholder="Başlık" required>
+      <textarea id="metin" placeholder="İçerik" rows="5" required></textarea>
+      <button type="submit">Yayınla</button>
+    </form>
+    <section id="haberler"></section>
+  </main>
+
+  <script type="module" src="/js/ana.js"></script>
+</body>
+</html>

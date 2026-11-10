@@ -1,0 +1,17 @@
+{
+  "name": "haber10da",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node sunucu.js",
+    "rol": "node betikler/rol-ver.js"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "firebase-admin": "^14.4.0"
+  }
+}
