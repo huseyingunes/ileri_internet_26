@@ -147,3 +147,7 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# haber10da
+.veri/
+nginx/sertifikalar/

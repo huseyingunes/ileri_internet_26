@@ -1,11 +1,27 @@
 name: Dağıtım
 
+# main dalına her gönderimde: önce testler, geçerse sunucuda güncelle ve yeniden başlat.
 on:
   push:
     branches: [main]
+  pull_request:
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
   deploy:
+    needs: test
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Sunucuda güncelle
@@ -14,8 +30,40 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 15m
           script: |
             set -e
             cd /var/www/haber10da
             git pull origin main
+            node -v
+            npm ci --omit=dev --no-audit --no-fund
+            mkdir -p .veri
+
+            # İlk dağıtımda üretim ayarları: gizli değerler yalnızca sunucuda üretilir, depoya ve günlüğe girmez.
+            if [ ! -f .env ]; then
+              umask 077
+              {
+                echo "NODE_ENV=production"
+                echo "PORT=9874"
+                echo "SITE_URL=https://haber10da.net"
+                echo "JWT_SECRET=$(openssl rand -hex 32)"
+                echo "ADMIN_EPOSTA=admin@haber10da.net"
+                echo "ADMIN_PAROLA=$(openssl rand -base64 18 | tr -d '/+=')"
+                echo "METRIK_PAROLA=$(openssl rand -hex 16)"
+                echo "AJAN_ZAMANLA=evet"
+                echo "AJAN_SAAT=08:00"
+                echo "AJAN_ADET=6"
+              } > .env
+              echo ".env oluşturuldu. Yönetici parolası için sunucuda: grep ADMIN_PAROLA /var/www/haber10da/.env"
+            fi
+
             sudo systemctl restart haber10da
+
+            # Duman testi: uygulama ayağa kalktı mı, üretim ayarlarını okudu mu?
+            for i in $(seq 1 30); do
+              if curl -fsS http://127.0.0.1:9874/api/hazir > /dev/null 2>&1; then break; fi
+              sleep 2
+            done
+            curl -fsS http://127.0.0.1:9874/api/sistem/durum | grep -q '"ortam":"production"' \
+              || { echo "Uygulama açılmadı ya da .env okunamadı:"; sudo journalctl -u haber10da -n 40 --no-pager; exit 1; }
+            echo "haber10da yayında."

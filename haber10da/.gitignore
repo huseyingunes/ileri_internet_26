@@ -1,7 +1,0 @@
-node_modules/
-.veri/
-.env
-*.log
-coverage/
-nginx/sertifikalar/
-.DS_Store

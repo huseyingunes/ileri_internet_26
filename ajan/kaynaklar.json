@@ -1,0 +1,13 @@
+{
+  "aciklama": "Günlük haber ajanının okuduğu RSS kaynakları. kategori: gundem, kampus, teknoloji, ekonomi, spor, kultur-sanat, balikesir. Kaynak eklemek için bu listeye bir satır ekleyin; aktif: false olan satırlar atlanır.",
+  "kaynaklar": [
+    { "ad": "Anadolu Ajansı", "url": "https://www.aa.com.tr/tr/rss/default?cat=guncel", "kategori": "gundem", "aktif": true },
+    { "ad": "BBC Türkçe", "url": "https://feeds.bbci.co.uk/turkce/rss.xml", "kategori": "gundem", "aktif": true },
+    { "ad": "TRT Haber", "url": "https://www.trthaber.com/gundem_articles.rss", "kategori": "gundem", "aktif": true },
+    { "ad": "CNN Türk", "url": "https://www.cnnturk.com/feed/rss/ekonomi/news", "kategori": "ekonomi", "aktif": true },
+    { "ad": "Dünya Gazetesi", "url": "https://www.dunya.com/rss", "kategori": "ekonomi", "aktif": true },
+    { "ad": "Gzt", "url": "https://www.gzt.com/rss?category=teknoloji", "kategori": "teknoloji", "aktif": true },
+    { "ad": "Gzt", "url": "https://www.gzt.com/rss?category=spor", "kategori": "spor", "aktif": true },
+    { "ad": "Gzt", "url": "https://www.gzt.com/rss?category=kultur", "kategori": "kultur-sanat", "aktif": true }
+  ]
+}

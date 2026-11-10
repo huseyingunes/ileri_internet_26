@@ -1,0 +1,2 @@
+# Windows toplu iş dosyaları her platformda CRLF ile çıkarılsın
+*.cmd text eol=crlf
