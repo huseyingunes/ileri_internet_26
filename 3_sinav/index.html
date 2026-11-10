@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>İleri İnternet Programlama — 2. Sınav</title>
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+
+  <!-- ================= GİRİŞ EKRANI ================= -->
+  <div id="giris-ekrani" class="sayfa gizli">
+    <div class="giris-karti">
+      <h1>İleri İnternet Programlama</h1>
+      <p class="alt">2. Sınav — Öğrenci Girişi</p>
+      <label for="giris-numara">Öğrenci Numarası</label>
+      <input type="text" id="giris-numara" autocomplete="off" inputmode="numeric"
+             placeholder="Örn. 202312001001">
+      <button id="giris-dugmesi">Sınava Giriş</button>
+      <p id="giris-hata" class="hata gizli"></p>
+      <p class="not">Numaranızla giriş yaptığınızda cevaplarınız sürekli kaydedilir;
+         bağlantı kesilse bile kaldığınız yerden devam edebilirsiniz.</p>
+    </div>
+  </div>
+
+  <!-- ================= SINAV EKRANI ================= -->
+  <div id="sinav-ekrani" class="sayfa gizli">
+
+    <header class="sinav-basligi">
+      <h1>İleri İnternet Programlama — 2. Sınav</h1>
+      <p class="alt">
+        50 soru · Bölüm A: Çoktan seçmeli (15) · Bölüm B: Kısa cevap (15) ·
+        Bölüm C: Eşleştirme (10) · Bölüm D: Kısa açıklama (5) · Bölüm E: Açıklamalı (5)
+      </p>
+      <p class="ogrenci-kimlik" id="ogrenci-kimlik"></p>
+    </header>
+
+    <main id="sinav-kok"></main>
+
+  </div>
+
+  <!-- ================= SONUÇ EKRANI ================= -->
+  <div id="sonuc-ekrani" class="sayfa gizli">
+    <header class="sinav-basligi">
+      <h1>Sınav Sonucu</h1>
+      <p class="ogrenci-kimlik" id="sonuc-kimlik"></p>
+    </header>
+    <section class="soru sonuc-ozet" id="sonuc-ozet"></section>
+    <section class="soru">
+      <h2 class="sonuc-baslik">Soru Bazında Sonuçlar</h2>
+      <table class="sonuc-tablosu" id="sonuc-tablosu">
+        <thead>
+          <tr><th>Soru</th><th>Tür</th><th>Sonuç</th><th>Puan</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </div>
+
+  <!-- ================= ALT ÇUBUK (sınav sırasında) ================= -->
+  <div class="alt-cubuk gizli" id="alt-cubuk">
+    <span class="ilerleme-metin" id="ilerleme-metin">Cevaplanan: 0 / 50</span>
+    <div class="ilerleme-kutu"><div class="ilerleme-dolgu" id="ilerleme-dolgu"></div></div>
+    <span class="kayit-durumu" id="kayit-durumu"></span>
+    <button id="bitir-dugmesi">Sınavı Bitir</button>
+  </div>
+
+  <script src="sorular.js"></script>
+  <script src="sinav.js"></script>
+
+</body>
+</html>
